@@ -1,0 +1,510 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Admin Panel – Aiolos Media</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Outfit:wght@300;400;500;600&display=swap" rel="stylesheet">
+  <style>
+    *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+    :root {
+      --black: #080808; --white: #f5f2ee; --accent: #c8a96e;
+      --accent2: #e8d5a3; --gray: #111; --gray2: #1c1c1c; --gray3: #252525;
+      --text-muted: #666; --success: #4caf50; --error: #e05a5a;
+    }
+    body { background: var(--black); color: var(--white); font-family: 'Outfit', sans-serif; font-weight: 300; min-height: 100vh; }
+
+    /* LOGIN */
+    #loginScreen {
+      min-height: 100vh; display: flex; align-items: center; justify-content: center;
+      background: var(--black);
+    }
+    .login-box {
+      width: 380px; padding: 56px 40px;
+      background: var(--gray2); border-top: 3px solid var(--accent);
+    }
+    .login-logo { font-family: 'Bebas Neue', sans-serif; font-size: 32px; letter-spacing: 3px; margin-bottom: 8px; }
+    .login-logo span { color: var(--accent); }
+    .login-sub { font-size: 11px; letter-spacing: 3px; text-transform: uppercase; color: var(--text-muted); margin-bottom: 40px; }
+    .login-field { display: flex; flex-direction: column; gap: 8px; margin-bottom: 18px; }
+    .login-field label { font-size: 10px; font-weight: 600; letter-spacing: 3px; text-transform: uppercase; color: var(--text-muted); }
+    .login-field input {
+      background: var(--gray3); border: 1px solid rgba(245,242,238,0.1);
+      color: var(--white); padding: 12px 14px;
+      font-family: 'Outfit', sans-serif; font-size: 14px; outline: none;
+      transition: border-color 0.2s;
+    }
+    .login-field input:focus { border-color: var(--accent); }
+    .login-btn {
+      background: var(--accent); color: var(--black); border: none;
+      padding: 14px; width: 100%; cursor: pointer;
+      font-family: 'Outfit', sans-serif; font-size: 12px; font-weight: 600;
+      letter-spacing: 3px; text-transform: uppercase; margin-top: 8px;
+      transition: background 0.2s;
+    }
+    .login-btn:hover { background: var(--accent2); }
+    .login-error { color: var(--error); font-size: 12px; margin-top: 12px; display: none; text-align: center; }
+
+    /* ADMIN LAYOUT */
+    #adminPanel { display: none; min-height: 100vh; }
+    .admin-sidebar {
+      position: fixed; top: 0; left: 0; bottom: 0; width: 240px;
+      background: var(--gray2); border-right: 1px solid rgba(245,242,238,0.05);
+      display: flex; flex-direction: column;
+      z-index: 10;
+    }
+    .sidebar-logo { padding: 28px 24px 24px; border-bottom: 1px solid rgba(245,242,238,0.05); }
+    .sidebar-logo-text { font-family: 'Bebas Neue', sans-serif; font-size: 22px; letter-spacing: 2px; }
+    .sidebar-logo-text span { color: var(--accent); }
+    .sidebar-subtitle { font-size: 9px; letter-spacing: 3px; text-transform: uppercase; color: var(--text-muted); margin-top: 2px; }
+
+    .sidebar-nav { padding: 16px 0; flex: 1; }
+    .nav-item {
+      display: flex; align-items: center; gap: 12px;
+      padding: 12px 24px; cursor: pointer;
+      font-size: 13px; letter-spacing: 0.5px;
+      color: rgba(245,242,238,0.5); transition: all 0.2s;
+      border-left: 2px solid transparent;
+    }
+    .nav-item:hover { color: var(--white); background: rgba(200,169,110,0.05); }
+    .nav-item.active { color: var(--accent); border-left-color: var(--accent); background: rgba(200,169,110,0.08); }
+    .nav-icon { font-size: 16px; width: 20px; text-align: center; }
+
+    .sidebar-footer { padding: 20px 24px; border-top: 1px solid rgba(245,242,238,0.05); }
+    .logout-btn {
+      background: none; border: 1px solid rgba(245,242,238,0.1);
+      color: var(--text-muted); padding: 8px 16px;
+      font-family: 'Outfit', sans-serif; font-size: 11px; letter-spacing: 2px;
+      text-transform: uppercase; cursor: pointer; width: 100%;
+      transition: all 0.2s;
+    }
+    .logout-btn:hover { color: var(--error); border-color: var(--error); }
+
+    .admin-main { margin-left: 240px; padding: 40px 48px; min-height: 100vh; }
+    .admin-topbar { display: flex; align-items: center; justify-content: space-between; margin-bottom: 40px; }
+    .admin-topbar h1 { font-family: 'Bebas Neue', sans-serif; font-size: 36px; letter-spacing: 2px; }
+    .topbar-badge { background: var(--accent); color: var(--black); padding: 4px 12px; font-size: 10px; font-weight: 600; letter-spacing: 2px; text-transform: uppercase; }
+
+    /* TABS */
+    .tab { display: none; }
+    .tab.active { display: block; }
+
+    /* DASHBOARD */
+    .stats-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; margin-bottom: 40px; }
+    .stat-card { background: var(--gray2); padding: 24px; border-top: 2px solid var(--accent); }
+    .stat-card-num { font-family: 'Bebas Neue', sans-serif; font-size: 44px; color: var(--accent); line-height: 1; }
+    .stat-card-label { font-size: 10px; letter-spacing: 3px; text-transform: uppercase; color: var(--text-muted); margin-top: 6px; }
+
+    .recent-box { background: var(--gray2); padding: 28px; }
+    .box-title { font-size: 11px; font-weight: 600; letter-spacing: 3px; text-transform: uppercase; color: var(--accent); margin-bottom: 20px; }
+    .msg-item { padding: 16px 0; border-bottom: 1px solid rgba(245,242,238,0.05); display: flex; justify-content: space-between; align-items: flex-start; gap: 16px; }
+    .msg-item:last-child { border-bottom: none; }
+    .msg-name { font-size: 14px; font-weight: 500; margin-bottom: 4px; }
+    .msg-preview { font-size: 12px; color: var(--text-muted); }
+    .msg-meta { font-size: 10px; color: var(--text-muted); white-space: nowrap; }
+    .msg-badge { display: inline-block; background: var(--accent); color: var(--black); padding: 2px 8px; font-size: 9px; font-weight: 600; letter-spacing: 1px; }
+
+    /* CONTENT EDITOR */
+    .content-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 24px; }
+    .editor-card { background: var(--gray2); padding: 28px; }
+    .editor-card-title { font-family: 'Bebas Neue', sans-serif; font-size: 20px; letter-spacing: 2px; margin-bottom: 20px; padding-bottom: 12px; border-bottom: 1px solid rgba(245,242,238,0.06); }
+    .editor-field { display: flex; flex-direction: column; gap: 6px; margin-bottom: 16px; }
+    .editor-field label { font-size: 9px; font-weight: 600; letter-spacing: 3px; text-transform: uppercase; color: var(--text-muted); }
+    .editor-field input,
+    .editor-field textarea {
+      background: var(--gray3); border: 1px solid rgba(245,242,238,0.08);
+      color: var(--white); padding: 10px 12px;
+      font-family: 'Outfit', sans-serif; font-size: 13px; outline: none;
+      transition: border-color 0.2s;
+    }
+    .editor-field input:focus, .editor-field textarea:focus { border-color: var(--accent); }
+    .editor-field textarea { resize: vertical; min-height: 80px; }
+    .save-btn {
+      background: var(--accent); color: var(--black); border: none;
+      padding: 10px 24px; cursor: pointer;
+      font-family: 'Outfit', sans-serif; font-size: 11px; font-weight: 600;
+      letter-spacing: 2px; text-transform: uppercase; transition: background 0.2s;
+    }
+    .save-btn:hover { background: var(--accent2); }
+    .saved-msg { display: none; color: var(--success); font-size: 11px; margin-left: 12px; letter-spacing: 1px; }
+    .saved-msg.show { display: inline; }
+
+    /* PROJECTS ADMIN */
+    .project-table { width: 100%; border-collapse: collapse; }
+    .project-table th { text-align: left; font-size: 9px; font-weight: 600; letter-spacing: 3px; text-transform: uppercase; color: var(--text-muted); padding: 0 16px 12px; border-bottom: 1px solid rgba(245,242,238,0.06); }
+    .project-table td { padding: 14px 16px; border-bottom: 1px solid rgba(245,242,238,0.04); font-size: 13px; vertical-align: middle; }
+    .project-table tr:hover td { background: rgba(200,169,110,0.03); }
+    .project-table .cat-badge { background: var(--gray3); padding: 3px 10px; font-size: 10px; letter-spacing: 1px; }
+    .tbl-btn { background: none; border: 1px solid rgba(245,242,238,0.12); color: rgba(245,242,238,0.6); padding: 5px 12px; font-size: 10px; cursor: pointer; font-family: 'Outfit', sans-serif; letter-spacing: 1px; transition: all 0.2s; margin-right: 4px; }
+    .tbl-btn:hover { border-color: var(--accent); color: var(--accent); }
+    .tbl-btn.del:hover { border-color: var(--error); color: var(--error); }
+    .add-project-btn { background: var(--accent); color: var(--black); border: none; padding: 10px 24px; cursor: pointer; font-family: 'Outfit', sans-serif; font-size: 11px; font-weight: 600; letter-spacing: 2px; text-transform: uppercase; margin-bottom: 24px; transition: background 0.2s; }
+    .add-project-btn:hover { background: var(--accent2); }
+
+    /* MESSAGES */
+    .msg-full-item { background: var(--gray2); padding: 24px; margin-bottom: 12px; border-left: 2px solid transparent; transition: border-color 0.2s; }
+    .msg-full-item.unread { border-left-color: var(--accent); }
+    .msg-header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 12px; }
+    .msg-from { font-size: 15px; font-weight: 500; }
+    .msg-from-meta { font-size: 11px; color: var(--text-muted); margin-top: 3px; }
+    .msg-service-badge { background: var(--gray3); padding: 3px 10px; font-size: 10px; color: var(--accent); letter-spacing: 1px; }
+    .msg-body { font-size: 13px; color: rgba(245,242,238,0.7); line-height: 1.7; padding: 14px; background: var(--gray3); }
+    .msg-actions { margin-top: 14px; display: flex; gap: 8px; }
+    .msg-act-btn { background: none; border: 1px solid rgba(245,242,238,0.12); color: rgba(245,242,238,0.6); padding: 6px 14px; font-size: 10px; cursor: pointer; font-family: 'Outfit', sans-serif; letter-spacing: 1px; transition: all 0.2s; }
+    .msg-act-btn:hover { border-color: var(--accent); color: var(--accent); }
+
+    .section-actions { display: flex; align-items: center; justify-content: space-between; margin-bottom: 24px; }
+    .section-count { font-size: 11px; color: var(--text-muted); letter-spacing: 1px; }
+
+    @media (max-width: 900px) {
+      .admin-sidebar { width: 200px; }
+      .admin-main { margin-left: 200px; padding: 28px 24px; }
+      .stats-grid { grid-template-columns: 1fr 1fr; }
+      .content-grid { grid-template-columns: 1fr; }
+    }
+    @media (max-width: 600px) {
+      .admin-sidebar { display: none; }
+      .admin-main { margin-left: 0; padding: 20px 16px; }
+    }
+  </style>
+</head>
+<body>
+
+<!-- LOGIN -->
+<div id="loginScreen">
+  <div class="login-box">
+    <div class="login-logo">AIOLOS <span>MEDIA</span></div>
+    <div class="login-sub">Admin Paneli</div>
+    <div class="login-field">
+      <label>Kullanıcı Adı</label>
+      <input type="text" id="loginUser" placeholder="admin" autocomplete="username">
+    </div>
+    <div class="login-field">
+      <label>Şifre</label>
+      <input type="password" id="loginPass" placeholder="••••••••" autocomplete="current-password">
+    </div>
+    <button class="login-btn" onclick="doLogin()">GİRİŞ YAP</button>
+    <p class="login-error" id="loginError">Kullanıcı adı veya şifre hatalı.</p>
+  </div>
+</div>
+
+<!-- ADMIN -->
+<div id="adminPanel">
+  <aside class="admin-sidebar">
+    <div class="sidebar-logo">
+      <div class="sidebar-logo-text">AIOLOS <span>MEDIA</span></div>
+      <div class="sidebar-subtitle">Admin Panel</div>
+    </div>
+    <nav class="sidebar-nav">
+      <div class="nav-item active" onclick="switchTab('dashboard')">
+        <span class="nav-icon">📊</span> Genel Bakış
+      </div>
+      <div class="nav-item" onclick="switchTab('content')">
+        <span class="nav-icon">✏️</span> İçerik Düzenle
+      </div>
+      <div class="nav-item" onclick="switchTab('projects')">
+        <span class="nav-icon">🎬</span> Projeler
+      </div>
+      <div class="nav-item" onclick="switchTab('messages')">
+        <span class="nav-icon">💬</span> Mesajlar
+        <span style="margin-left:auto; background:var(--accent); color:var(--black); padding:1px 7px; font-size:10px; font-weight:700;">3</span>
+      </div>
+      <div class="nav-item" onclick="window.open('/','_blank')">
+        <span class="nav-icon">🌐</span> Siteyi Gör
+      </div>
+    </nav>
+    <div class="sidebar-footer">
+      <button class="logout-btn" onclick="doLogout()">ÇIKIŞ YAP</button>
+    </div>
+  </aside>
+
+  <main class="admin-main">
+
+    <!-- DASHBOARD -->
+    <div class="tab active" id="tab-dashboard">
+      <div class="admin-topbar">
+        <h1>GENEL BAKIŞ</h1>
+        <span class="topbar-badge">HOŞ GELDİNİZ</span>
+      </div>
+      <div class="stats-grid">
+        <div class="stat-card">
+          <div class="stat-card-num">11</div>
+          <div class="stat-card-label">Toplam Proje</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-card-num">3</div>
+          <div class="stat-card-label">Yeni Mesaj</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-card-num">5</div>
+          <div class="stat-card-label">Hizmet</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-card-num">12+</div>
+          <div class="stat-card-label">Yıl Deneyim</div>
+        </div>
+      </div>
+      <div class="recent-box">
+        <p class="box-title">Son Gelen Mesajlar</p>
+        <div class="msg-item">
+          <div>
+            <div class="msg-name">Ahmet Yılmaz <span class="msg-badge">YENİ</span></div>
+            <div class="msg-preview">GES testimiz için termal drone hizmetinizi merak ediyorum...</div>
+          </div>
+          <div class="msg-meta">2 saat önce</div>
+        </div>
+        <div class="msg-item">
+          <div>
+            <div class="msg-name">Zeynep Kaya <span class="msg-badge">YENİ</span></div>
+            <div class="msg-preview">Otelimiz için 360° sanal tur çekimi hakkında bilgi almak istiyorum...</div>
+          </div>
+          <div class="msg-meta">1 gün önce</div>
+        </div>
+        <div class="msg-item">
+          <div>
+            <div class="msg-name">Mert Demir <span class="msg-badge">YENİ</span></div>
+            <div class="msg-preview">Düğün organizasyonumuz için drone çekimi ücret listesi...</div>
+          </div>
+          <div class="msg-meta">2 gün önce</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- CONTENT EDITOR -->
+    <div class="tab" id="tab-content">
+      <div class="admin-topbar">
+        <h1>İÇERİK DÜZENLE</h1>
+      </div>
+      <div class="content-grid">
+        <div class="editor-card">
+          <div class="editor-card-title">HERO BÖLÜMÜ</div>
+          <div class="editor-field">
+            <label>Başlık Satır 1</label>
+            <input type="text" id="hero1" value="GÖKYÜZÜNDEN">
+          </div>
+          <div class="editor-field">
+            <label>Başlık Satır 2 (Altın Renk)</label>
+            <input type="text" id="hero2" value="BAKIŞ AÇISI">
+          </div>
+          <div class="editor-field">
+            <label>Alt Başlık</label>
+            <textarea id="heroSub">Drone çekimlerinden 360° sanal turlara, termal görüntülemeden stüdyo prodüksiyonuna — 2012'den bu yana.</textarea>
+          </div>
+          <button class="save-btn" onclick="saveSection('hero')">KAYDET</button>
+          <span class="saved-msg" id="saved-hero">✓ Kaydedildi</span>
+        </div>
+
+        <div class="editor-card">
+          <div class="editor-card-title">HAKKIMIZDA</div>
+          <div class="editor-field">
+            <label>Metin 1</label>
+            <textarea id="about1">2012 yılında stüdyo içerisinde ürün çekimleri ile başlayan maceramız, 2015 yılında drone ile havadan belgesel ve tanıtım filmleri çekimleri ile devam etti.</textarea>
+          </div>
+          <div class="editor-field">
+            <label>Metin 2</label>
+            <textarea id="about2">Gelişen teknolojilere sürekli uyum sağlayarak ekipmanlarımızı güncelledik. 2020 yılında bünyemize kattığımız 360° kameralarımız ile sanal tur hizmeti vermeye başladık.</textarea>
+          </div>
+          <button class="save-btn" onclick="saveSection('about')">KAYDET</button>
+          <span class="saved-msg" id="saved-about">✓ Kaydedildi</span>
+        </div>
+
+        <div class="editor-card">
+          <div class="editor-card-title">İLETİŞİM BİLGİLERİ</div>
+          <div class="editor-field">
+            <label>Telefon 1</label>
+            <input type="text" id="phone1" value="0540 510 34 35">
+          </div>
+          <div class="editor-field">
+            <label>Telefon 2</label>
+            <input type="text" id="phone2" value="0540 610 34 35">
+          </div>
+          <div class="editor-field">
+            <label>E-posta</label>
+            <input type="email" id="contactEmail" value="info@aiolos.media">
+          </div>
+          <div class="editor-field">
+            <label>Instagram</label>
+            <input type="text" id="instagram" value="https://www.instagram.com/aiolos.media/">
+          </div>
+          <div class="editor-field">
+            <label>YouTube</label>
+            <input type="text" id="youtube" value="https://www.youtube.com/@aiolos.mediaofficial">
+          </div>
+          <button class="save-btn" onclick="saveSection('contact')">KAYDET</button>
+          <span class="saved-msg" id="saved-contact">✓ Kaydedildi</span>
+        </div>
+
+        <div class="editor-card">
+          <div class="editor-card-title">SEO AYARLARI</div>
+          <div class="editor-field">
+            <label>Sayfa Başlığı</label>
+            <input type="text" id="seoTitle" value="Aiolos Media – Prodüksiyon & Drone Çekimleri">
+          </div>
+          <div class="editor-field">
+            <label>Meta Açıklama</label>
+            <textarea id="seoDesc">Drone çekimleri, 360° sanal tur, iç/dış mekan çekimleri ve termal görüntüleme hizmetleri. 2012'den bu yana profesyonel medya prodüksiyonu.</textarea>
+          </div>
+          <button class="save-btn" onclick="saveSection('seo')">KAYDET</button>
+          <span class="saved-msg" id="saved-seo">✓ Kaydedildi</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- PROJECTS ADMIN -->
+    <div class="tab" id="tab-projects">
+      <div class="admin-topbar">
+        <h1>PROJELER</h1>
+      </div>
+      <button class="add-project-btn" onclick="addProject()">+ YENİ PROJE EKLE</button>
+      <div style="background: var(--gray2); padding: 4px 0;">
+        <table class="project-table" id="projectsTable">
+          <thead>
+            <tr>
+              <th>Proje Adı</th>
+              <th>Kategori</th>
+              <th>Durum</th>
+              <th>İşlem</th>
+            </tr>
+          </thead>
+          <tbody id="projectsBody"></tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- MESSAGES -->
+    <div class="tab" id="tab-messages">
+      <div class="admin-topbar">
+        <h1>MESAJLAR</h1>
+      </div>
+      <div class="section-actions">
+        <span class="section-count">3 okunmamış mesaj</span>
+      </div>
+      <div id="messagesContainer">
+        <div class="msg-full-item unread">
+          <div class="msg-header">
+            <div>
+              <div class="msg-from">Ahmet Yılmaz <span class="msg-badge">YENİ</span></div>
+              <div class="msg-from-meta"><a href="/cdn-cgi/l/email-protection" class="__cf_email__" data-cfemail="5130393c3425113738233c307f323e3c">[email&#160;protected]</a> · 0532 123 45 67 · Güneş Enerji AŞ</div>
+            </div>
+            <span class="msg-service-badge">TERMAL DRONE</span>
+          </div>
+          <div class="msg-body">GES testimiz için termal drone hizmetinizi merak ediyorum. 500 kWp kurulu gücünde bir güneş santraline sahibiz. Arıza tespiti ve verimlilik analizi için fiyat teklifi alabilir miyim? İzmir'deyiz.</div>
+          <div class="msg-actions">
+            <button class="msg-act-btn" onclick="this.closest('.msg-full-item').classList.remove('unread')">✓ Okundu İşaretle</button>
+            <button class="msg-act-btn" onclick="window.open('mailto:ahmet@firma.com')">✉ Yanıtla</button>
+          </div>
+        </div>
+        <div class="msg-full-item unread">
+          <div class="msg-header">
+            <div>
+              <div class="msg-from">Zeynep Kaya <span class="msg-badge">YENİ</span></div>
+              <div class="msg-from-meta"><a href="/cdn-cgi/l/email-protection" class="__cf_email__" data-cfemail="78021d01161d0838170c1d14561b1715">[email&#160;protected]</a> · Adatepe İdaBlue Otel</div>
+            </div>
+            <span class="msg-service-badge">360° SANAL TUR</span>
+          </div>
+          <div class="msg-body">Otelimiz için 360° sanal tur çekimi hakkında bilgi almak istiyorum. Toplam 24 odamız, restoran ve spa alanımız var. Tüm alanlar için çekim yapabilir misiniz? Fiyat bilgisi ve süreç hakkında bilgi alabilir miyim?</div>
+          <div class="msg-actions">
+            <button class="msg-act-btn" onclick="this.closest('.msg-full-item').classList.remove('unread')">✓ Okundu İşaretle</button>
+            <button class="msg-act-btn" onclick="window.open('mailto:zeynep@otel.com')">✉ Yanıtla</button>
+          </div>
+        </div>
+        <div class="msg-full-item unread">
+          <div class="msg-header">
+            <div>
+              <div class="msg-from">Mert Demir <span class="msg-badge">YENİ</span></div>
+              <div class="msg-from-meta"><a href="/cdn-cgi/l/email-protection" class="__cf_email__" data-cfemail="9ff2faedebb1fbfaf2f6eddff8f2fef6f3b1fcf0f2">[email&#160;protected]</a> · 0555 987 65 43</div>
+            </div>
+            <span class="msg-service-badge">HAVADAN ÇEKİM</span>
+          </div>
+          <div class="msg-body">Düğün organizasyonumuz için drone çekimi ücret listesi ve paket bilgisi alabilir miyim? Tarih: 15 Haziran. Yer: Çeşme. Sabah ve akşam seremoni var.</div>
+          <div class="msg-actions">
+            <button class="msg-act-btn" onclick="this.closest('.msg-full-item').classList.remove('unread')">✓ Okundu İşaretle</button>
+            <button class="msg-act-btn" onclick="window.open('mailto:mert.demir@gmail.com')">✉ Yanıtla</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </main>
+</div>
+
+<script data-cfasync="false" src="/cdn-cgi/scripts/5c5dd728/cloudflare-static/email-decode.min.js"></script><script>
+  // LOGIN (örnek: admin/aiolos2024 — gerçek projede backend ile değiştirin)
+  const CREDENTIALS = { user: 'admin', pass: 'aiolos2024' };
+
+  function doLogin() {
+    const u = document.getElementById('loginUser').value;
+    const p = document.getElementById('loginPass').value;
+    if (u === CREDENTIALS.user && p === CREDENTIALS.pass) {
+      document.getElementById('loginScreen').style.display = 'none';
+      document.getElementById('adminPanel').style.display = 'block';
+      renderProjects();
+    } else {
+      document.getElementById('loginError').style.display = 'block';
+    }
+  }
+  document.getElementById('loginPass').addEventListener('keydown', (e) => { if (e.key === 'Enter') doLogin(); });
+
+  function doLogout() {
+    document.getElementById('adminPanel').style.display = 'none';
+    document.getElementById('loginScreen').style.display = 'flex';
+    document.getElementById('loginUser').value = '';
+    document.getElementById('loginPass').value = '';
+  }
+
+  // TABS
+  function switchTab(name) {
+    document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+    document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+    document.getElementById('tab-' + name).classList.add('active');
+    event.currentTarget.classList.add('active');
+  }
+
+  // SAVE SECTIONS
+  function saveSection(key) {
+    const el = document.getElementById('saved-' + key);
+    el.classList.add('show');
+    setTimeout(() => el.classList.remove('show'), 2500);
+  }
+
+  // PROJECTS DATA
+  let projects = [
+    { id: 1, name: 'Aiolos Media Termal Görüntüleme (GES)', cat: 'Termal', status: 'Yayında' },
+    { id: 2, name: 'Bali Owners Party | Catalogic Yachts', cat: 'Drone / Deniz', status: 'Yayında' },
+    { id: 3, name: 'ECU Worldwide Logistech Fuar İzmir', cat: 'Fuar / Etkinlik', status: 'Yayında' },
+    { id: 4, name: 'Data & Erkport Logistech Fuar İzmir', cat: 'Fuar / Etkinlik', status: 'Yayında' },
+    { id: 5, name: 'BlueZoneTURKEY Tanıtım', cat: 'Tanıtım Filmi', status: 'Yayında' },
+    { id: 6, name: 'NORTHSTAR RİBS İNTRO', cat: 'Ürün / Deniz', status: 'Yayında' },
+    { id: 7, name: 'İzmir Dış Ticaret Mesleki Lisesi', cat: 'Kurumsal', status: 'Yayında' },
+    { id: 8, name: '86. İEF Röportaj Filmi', cat: 'Etkinlik', status: 'Yayında' },
+    { id: 9, name: 'Adatepe İdaBlue Otel', cat: 'Otel / Tanıtım', status: 'Yayında' },
+    { id: 10, name: 'Murathan Jet Kargo Tanıtım', cat: 'Tanıtım Filmi', status: 'Yayında' },
+    { id: 11, name: '18 Mart Şehitleri – Yeşeren Koleji', cat: 'Etkinlik', status: 'Yayında' },
+  ];
+
+  function renderProjects() {
+    const tbody = document.getElementById('projectsBody');
+    tbody.innerHTML = projects.map(p => `
+      <tr>
+        <td>${p.name}</td>
+        <td><span class="cat-badge">${p.cat}</span></td>
+        <td style="color:var(--success);font-size:12px;">${p.status}</td>
+        <td>
+          <button class="tbl-btn" onclick="editProject(${p.id})">Düzenle</button>
+          <button class="tbl-btn del" onclick="deleteProject(${p.id})">Sil</button>
+        </td>
+      </tr>
+    `).join('');
+  }
+
+  function deleteProject(id) {
+    if (confirm('Bu projeyi silmek istediğinizden emin misiniz?')) {
+      projects = projects.filter(p => p.id !== id);
+      renderProjects();
+    }
+  }
+
+  function editProject(id) {
+    const p = projects.find(pr => pr.id === id);
+    const newName = prompt('Pro

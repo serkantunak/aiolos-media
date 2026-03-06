@@ -1,0 +1,66 @@
+backend:
+  name: git-gateway
+  branch: main
+
+media_folder: "images"
+public_folder: "/images"
+
+locale: 'tr'
+
+collections:
+
+  - name: "ayarlar"
+    label: "⚙️ Site Ayarları"
+    files:
+
+      - name: "genel"
+        label: "Genel Bilgiler"
+        file: "_data/genel.json"
+        fields:
+          - { label: "Telefon 1", name: "telefon1", widget: "string", hint: "Örn: 0540 510 34 35" }
+          - { label: "Telefon 2", name: "telefon2", widget: "string" }
+          - { label: "E-posta", name: "eposta", widget: "string" }
+          - { label: "Instagram URL", name: "instagram", widget: "string" }
+          - { label: "YouTube URL", name: "youtube", widget: "string" }
+
+      - name: "anasayfa"
+        label: "🏠 Ana Sayfa İçeriği"
+        file: "_data/anasayfa.json"
+        fields:
+          - { label: "Hero Başlık Satır 1", name: "hero1", widget: "string", default: "GÖKYÜZÜNDEN" }
+          - { label: "Hero Başlık Satır 2 (altın renk)", name: "hero2", widget: "string", default: "BAKIŞ AÇISI" }
+          - { label: "Hero Alt Yazı", name: "heroSub", widget: "string" }
+          - label: "Hakkımızda Metni"
+            name: "hakkimizda"
+            widget: "list"
+            fields:
+              - { label: "Paragraf", name: "metin", widget: "text" }
+          - { label: "İstatistik 1 – Sayı", name: "stat1sayi", widget: "string", default: "12+" }
+          - { label: "İstatistik 1 – Etiket", name: "stat1etiket", widget: "string", default: "Yıl Deneyim" }
+          - { label: "İstatistik 2 – Sayı", name: "stat2sayi", widget: "string", default: "5" }
+          - { label: "İstatistik 2 – Etiket", name: "stat2etiket", widget: "string", default: "Hizmet Alanı" }
+          - { label: "İstatistik 3 – Sayı", name: "stat3sayi", widget: "string", default: "100+" }
+          - { label: "İstatistik 3 – Etiket", name: "stat3etiket", widget: "string", default: "Tamamlanan Proje" }
+
+  - name: "hizmetler"
+    label: "🎬 Hizmetler"
+    folder: "_data/hizmetler"
+    create: true
+    slug: "{{slug}}"
+    fields:
+      - { label: "Hizmet Adı", name: "title", widget: "string" }
+      - { label: "Sıra Numarası", name: "sira", widget: "number", value_type: "int" }
+      - { label: "Açıklama", name: "aciklama", widget: "text" }
+      - { label: "Görsel", name: "gorsel", widget: "image", required: false }
+
+  - name: "projeler"
+    label: "📽️ Portfolio Projeleri"
+    folder: "_data/projeler"
+    create: true
+    slug: "{{slug}}"
+    fields:
+      - { label: "Proje Adı", name: "title", widget: "string" }
+      - { label: "Kategori", name: "kategori", widget: "select", options: ["Drone / Deniz", "Tanıtım Filmi", "Termal Görüntüleme", "Fuar / Etkinlik", "Kurumsal", "Röportaj / Etkinlik", "Otel / Tanıtım", "Etkinlik", "Ürün / Deniz"] }
+      - { label: "YouTube Video ID", name: "youtubeId", widget: "string", hint: "YouTube linkindeki kısa kod. Örn: Szx6Q0QHmE0" }
+      - { label: "Geniş kart (2 sütun)?", name: "wide", widget: "boolean", default: false }
+      - { label: "Yayında mı?", name: "yayinda", widget: "boolean", default: true }
