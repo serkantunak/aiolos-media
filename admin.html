@@ -507,4 +507,23 @@
 
   function editProject(id) {
     const p = projects.find(pr => pr.id === id);
-    const newName = prompt('Pro
+     if (!p) return;
+
+    const newName = prompt('Proje adını güncelle:', p.name);
+    if (newName && newName.trim() !== '') {
+      p.name = newName.trim();
+    }
+
+    const newCat = prompt('Kategori:', p.cat);
+    if (newCat && newCat.trim() !== '') {
+      p.cat = newCat.trim();
+    }
+
+    const newStatus = prompt('Durum (Yayında / Taslak vb.):', p.status);
+    if (newStatus && newStatus.trim() !== '') {
+      p.status = newStatus.trim();
+    }
+
+    renderProjects();
+  }
+</script>
